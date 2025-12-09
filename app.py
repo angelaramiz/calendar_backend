@@ -28,6 +28,8 @@ CORS(app)
 # ============================================
 def get_chrome_driver(headless=True):
     """Crear instancia de Chrome con configuración óptima"""
+    import os
+    
     options = Options()
     
     if headless:
@@ -46,7 +48,16 @@ def get_chrome_driver(headless=True):
     options.add_experimental_option('excludeSwitches', ['enable-automation'])
     options.add_experimental_option('useAutomationExtension', False)
     
-    service = Service(ChromeDriverManager().install())
+    # Usar chromedriver del sistema si existe (producción), sino usar webdriver-manager (desarrollo)
+    chromedriver_path = os.environ.get('CHROMEDRIVER_PATH')
+    if chromedriver_path and os.path.exists(chromedriver_path):
+        # Producción: usar chromium del sistema
+        options.binary_location = os.environ.get('CHROME_BIN', '/usr/bin/chromium')
+        service = Service(chromedriver_path)
+    else:
+        # Desarrollo: usar webdriver-manager
+        service = Service(ChromeDriverManager().install())
+    
     driver = webdriver.Chrome(service=service, options=options)
     
     # Ejecutar script para ocultar webdriver

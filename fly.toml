@@ -1,9 +1,9 @@
-# fly.toml app configuration file generated for calendar-backend-hkea0q on 2025-12-09T10:01:58Z
+# fly.toml app configuration file generated for calendar-backend-ed6u5g on 2025-12-09T10:01:58Z
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'calendar-backend-hkea0q'
+app = 'calendar-backend-ed6u5g'
 primary_region = 'ord'
 
 [build]

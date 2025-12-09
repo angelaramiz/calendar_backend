@@ -26,7 +26,13 @@ RUN apt-get update && apt-get install -y \
     libxrandr2 \
     libxss1 \
     libgbm1 \
+    chromium \
+    chromium-driver \
     && rm -rf /var/lib/apt/lists/*
+
+# Configurar variables de entorno para Chromium
+ENV CHROME_BIN=/usr/bin/chromium
+ENV CHROMEDRIVER_PATH=/usr/bin/chromedriver
 
 # Copiar archivos de requisitos
 COPY requirements.txt .
