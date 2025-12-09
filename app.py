@@ -597,6 +597,127 @@ def take_screenshot(driver, url):
 # ============================================
 # ENDPOINTS
 # ============================================
+@app.route('/scrape/quick', methods=['POST'])
+@app.route('/api/scrape/quick', methods=['POST'])
+def scrape_quick():
+    """Scraping rápido: solo nombre y precio (sin imagen)"""
+    data = request.get_json() or {}
+    url = data.get('url')
+    
+    if not url:
+        return jsonify({'error': 'URL es requerida'}), 400
+    
+    driver = None
+    try:
+        platform = detect_platform(url)
+        print(f"\n[QUICK] 🚀 Scraping rápido: {platform['store']}")
+        print(f"[QUICK] URL: {url}")
+        
+        driver = get_chrome_driver(headless=True)
+        
+        # Usar función específica de la plataforma
+        if platform['platform'] == 'mercadolibre':
+            result = scrape_mercadolibre(driver, url)
+        elif platform['platform'] == 'amazon':
+            result = scrape_amazon(driver, url)
+        else:
+            result = scrape_generic(driver, url, platform)
+        
+        driver.quit()
+        
+        # Remover la imagen de la respuesta rápida
+        result['image'] = ''
+        
+        if 'error' in result:
+            return jsonify({'success': False, **result})
+        
+        return jsonify({
+            'success': True,
+            'data': {
+                'url': url,
+                'platform': platform,
+                **result,
+                'scrapedAt': datetime.now(timezone.utc).isoformat()
+            }
+        })
+    
+    except Exception as e:
+        print(f"[QUICK ERROR] {str(e)}")
+        traceback.print_exc()
+        if driver:
+            driver.quit()
+        
+        return jsonify({
+            'success': False,
+            'error': 'ERROR_SCRAPING',
+            'message': str(e)
+        }), 500
+
+
+@app.route('/scrape/image', methods=['POST'])
+@app.route('/api/scrape/image', methods=['POST'])
+def scrape_image():
+    """Obtener solo la imagen del producto"""
+    data = request.get_json() or {}
+    url = data.get('url')
+    
+    if not url:
+        return jsonify({'error': 'URL es requerida'}), 400
+    
+    driver = None
+    try:
+        platform = detect_platform(url)
+        print(f"\n[IMAGE] 🖼️ Obteniendo imagen: {platform['store']}")
+        
+        driver = get_chrome_driver(headless=True)
+        driver.get(url)
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
+        
+        image_url = ''
+        image_selectors = [
+            '.product-image img', '.pdp-image img', '.gallery-image img',
+            '#landingImage', '#imgBlkFront', '#main-image',
+            '.ui-pdp-image', '.ui-pdp-gallery__figure img',
+            '[data-testid="product-image"]', '[data-zoom]',
+            '.product__photo img', '.primary-image',
+            'img[class*="product"]', 'img[class*="gallery"]',
+            'meta[property="og:image"]'
+        ]
+        
+        for selector in image_selectors:
+            try:
+                if 'meta' in selector:
+                    element = driver.find_element(By.CSS_SELECTOR, selector)
+                    image_url = element.get_attribute('content')
+                else:
+                    element = driver.find_element(By.CSS_SELECTOR, selector)
+                    image_url = (element.get_attribute('src') or 
+                               element.get_attribute('data-src') or 
+                               element.get_attribute('data-zoom'))
+                
+                if image_url and image_url.startswith('http'):
+                    break
+            except:
+                pass
+        
+        driver.quit()
+        
+        return jsonify({
+            'success': True,
+            'image': image_url
+        })
+    
+    except Exception as e:
+        print(f"[IMAGE ERROR] {str(e)}")
+        if driver:
+            driver.quit()
+        
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
 @app.route('/', methods=['GET'])
 def home():
     """Endpoint de health check"""
