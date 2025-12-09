@@ -688,6 +688,8 @@ def debug():
 # MAIN
 # ============================================
 if __name__ == '__main__':
+    import os
+    
     print("\n" + "="*60)
     print("🚀 Universal Product Scraper API v2.0")
     print("="*60)
@@ -701,4 +703,6 @@ if __name__ == '__main__':
     print("  POST /debug   - Captura de pantalla para debug")
     print("="*60 + "\n")
     
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    # Obtener puerto de variable de entorno (Fly.io usa PORT)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
