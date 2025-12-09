@@ -36,7 +36,7 @@ COPY requirements.txt .
 # Instalar dependencias de Python
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Instalar navegador de Playwright usando python -m
+# Instalar navegador de Playwright usando python -m (actualizado 2025-12-09 04:03)
 RUN python -m playwright install chromium
 RUN python -m playwright install-deps chromium
 
