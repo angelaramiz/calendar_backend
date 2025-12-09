@@ -4,30 +4,32 @@ FROM python:3.11-slim
 # Establecer directorio de trabajo
 WORKDIR /app
 
-# Instalar dependencias del sistema necesarias para Playwright
+# Instalar dependencias del sistema necesarias para Chrome/Chromium (Selenium)
 RUN apt-get update && apt-get install -y \
     wget \
     gnupg \
     ca-certificates \
     fonts-liberation \
+    libnss3 \
+    libgconf-2-4 \
+    libx11-6 \
+    libx11-xcb1 \
+    libxcb1 \
+    libxcomposite1 \
+    libxcursor1 \
+    libxdamage1 \
+    libxi6 \
+    libxtst6 \
+    libappindicator1 \
     libasound2 \
-    libatk-bridge2.0-0 \
     libatk1.0-0 \
-    libatspi2.0-0 \
     libcups2 \
     libdbus-1-3 \
-    libdrm2 \
-    libgbm1 \
-    libgtk-3-0 \
+    libgdk-pixbuf2.0-0 \
     libnspr4 \
-    libnss3 \
-    libwayland-client0 \
-    libxcomposite1 \
-    libxdamage1 \
-    libxfixes3 \
-    libxkbcommon0 \
     libxrandr2 \
-    xdg-utils \
+    libxss1 \
+    libgbm1 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copiar archivos de requisitos
@@ -35,10 +37,6 @@ COPY requirements.txt .
 
 # Instalar dependencias de Python
 RUN pip install --no-cache-dir -r requirements.txt
-
-# Instalar navegador de Playwright usando python -m (actualizado 2025-12-09 04:03)
-RUN python -m playwright install chromium
-RUN python -m playwright install-deps chromium
 
 # Copiar el código de la aplicación
 COPY . .
