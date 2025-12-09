@@ -35,18 +35,37 @@ def get_chrome_driver(headless=True):
     if headless:
         options.add_argument('--headless=new')
     
-    # Opciones para evitar detección
+    # Opciones de rendimiento para servidores con pocos recursos
     options.add_argument('--disable-blink-features=AutomationControlled')
     options.add_argument('--disable-dev-shm-usage')
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-gpu')
-    options.add_argument('--window-size=1920,1080')
+    options.add_argument('--disable-software-rasterizer')
+    options.add_argument('--disable-extensions')
+    options.add_argument('--disable-images')  # No cargar imágenes (más rápido)
+    options.add_argument('--blink-settings=imagesEnabled=false')
+    options.add_argument('--disable-javascript')  # Desactivar JS en modo quick
+    options.add_argument('--window-size=1280,720')  # Ventana más pequeña
+    options.add_argument('--single-process')  # Proceso único (menos memoria)
+    options.add_argument('--disable-background-networking')
+    options.add_argument('--disable-default-apps')
+    options.add_argument('--disable-sync')
+    options.add_argument('--metrics-recording-only')
+    options.add_argument('--no-first-run')
+    options.add_argument('--safebrowsing-disable-auto-update')
     options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
     options.add_argument('--lang=es-MX')
     
     # Excluir switches de automatización
-    options.add_experimental_option('excludeSwitches', ['enable-automation'])
+    options.add_experimental_option('excludeSwitches', ['enable-automation', 'enable-logging'])
     options.add_experimental_option('useAutomationExtension', False)
+    
+    # Preferencias para rendimiento
+    prefs = {
+        'profile.managed_default_content_settings.images': 2,  # No cargar imágenes
+        'disk-cache-size': 4096
+    }
+    options.add_experimental_option('prefs', prefs)
     
     # Usar chromedriver del sistema si existe (producción), sino usar webdriver-manager (desarrollo)
     chromedriver_path = os.environ.get('CHROMEDRIVER_PATH')
@@ -58,12 +77,14 @@ def get_chrome_driver(headless=True):
         # Desarrollo: usar webdriver-manager
         service = Service(ChromeDriverManager().install())
     
-    driver = webdriver.Chrome(service=service, options=options)
-    
-    # Ejecutar script para ocultar webdriver
-    driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
-    
-    return driver
+    try:
+        driver = webdriver.Chrome(service=service, options=options)
+        driver.set_page_load_timeout(30)  # Timeout de 30 segundos para cargar página
+        driver.set_script_timeout(10)  # Timeout de scripts
+        return driver
+    except Exception as e:
+        print(f"[ERROR] Failed to create Chrome driver: {str(e)}")
+        raise
 
 
 # ============================================
@@ -250,7 +271,7 @@ def universal_extract(driver, url, platform_config):
         'store': platform_config.get('store', 'Tienda Online')
     }
     
-    time.sleep(3)
+    time.sleep(1)  # Reducido de 3 a 1 segundo para modo quick
     
     # ============================================
     # ESTRATEGIA 1: Meta Tags
