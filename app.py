@@ -609,16 +609,16 @@ def scrape_quick():
     
     driver = None
     try:
-        platform = detect_platform(url)
-        print(f"\n[QUICK] 🚀 Scraping rápido: {platform['store']}")
+        platform_name, platform = detect_platform(url)
+        print(f"\n[QUICK] 🚀 Scraping rápido: {platform.get('store', 'Unknown')}")
         print(f"[QUICK] URL: {url}")
         
         driver = get_chrome_driver(headless=True)
         
         # Usar función específica de la plataforma
-        if platform['platform'] == 'mercadolibre':
+        if platform_name == 'mercadolibre':
             result = scrape_mercadolibre(driver, url)
-        elif platform['platform'] == 'amazon':
+        elif platform_name == 'amazon':
             result = scrape_amazon(driver, url)
         else:
             result = scrape_generic(driver, url, platform)
@@ -666,8 +666,8 @@ def scrape_image():
     
     driver = None
     try:
-        platform = detect_platform(url)
-        print(f"\n[IMAGE] 🖼️ Obteniendo imagen: {platform['store']}")
+        platform_name, platform = detect_platform(url)
+        print(f"\n[IMAGE] 🖼️ Obteniendo imagen: {platform.get('store', 'Unknown')}")
         
         driver = get_chrome_driver(headless=True)
         driver.get(url)
